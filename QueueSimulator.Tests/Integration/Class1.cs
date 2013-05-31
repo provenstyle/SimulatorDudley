@@ -7,10 +7,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace QueueSimulator.Tests.Integration
 {
-    [TestClass][Slow]
+    [TestClass]
     public class QueueManagerIntegrationTests
     {
-        [TestMethod]
+       [TestMethod][Slow]
         public void Queue_Msg_And_Ensure_It_Runs()
         {
             Assert.Fail();
