@@ -11,6 +11,7 @@ namespace QueueSimulator
     {
         private bool stopSignal = false;
 
+        public bool Processing { get; private set; }
         public MessageProcessor(MessageQueue queue)
         {
             this.Queue = queue;
@@ -20,11 +21,17 @@ namespace QueueSimulator
 
         public void Start()
         {
-            while (Queue.Count > 0 || stopSignal)
-            {
-                var msg = Queue.Dequeue();
-                msg.Run();
-            }
+           Processing = true;
+           do
+           {
+              while (Queue.Count > 0 )
+              {
+                 var msg = Queue.Dequeue();
+                 msg.Run();
+              }  
+              Thread.Sleep(250);
+           } while (!stopSignal);
+           Processing = false;
         }
 
         public void Stop()

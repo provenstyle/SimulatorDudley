@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Threading;
@@ -20,7 +21,7 @@ namespace QueueSimulator.Tests
             var processor = new MessageProcessor(messageQueue);
 
             // Act
-            processor.Start();
+           Task.Factory.StartNew(processor.Start);
 
             while (processor.Queue.Count > 0) { Thread.Sleep(100); }
 

@@ -19,13 +19,13 @@ namespace QueueSimulator.Tests
                                            new Car(),
                                            new Car()
                                          };
-            target = new QueueManager(listOfCars);
 
         }
         [TestMethod]
         public void Start_Should_Create_One_Thread_Per_20_Cars()
         {
             // Arrange
+           target = new QueueManager(listOfCars,20);
 
             // Act
             target.Start();
@@ -38,6 +38,7 @@ namespace QueueSimulator.Tests
         public void AddingOneCarCreatesOneThread()
         {
            // Arrange
+           target = new QueueManager(listOfCars, 20);
 
            // Act
            target.Start();
@@ -50,6 +51,7 @@ namespace QueueSimulator.Tests
        public void should_create_one_queue_per_thread()
        {
           // Arrange
+          target = new QueueManager(listOfCars,20);
 
 
           // Act
@@ -58,6 +60,19 @@ namespace QueueSimulator.Tests
           // Assert
           Assert.AreEqual(target.Queues.Count, 1);
 
+       }
+
+       [TestMethod]
+       public void should_specify_number_of_cars_per_thread()
+       {
+          // Arrange
+          target = new QueueManager(listOfCars, 1);
+
+          // Act
+          target.Start();
+
+          // Assert
+          Assert.AreEqual(2, target.Processors.Count);
        }
     }
 

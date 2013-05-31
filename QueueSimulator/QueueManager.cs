@@ -11,17 +11,21 @@ namespace QueueSimulator
     {
         private readonly IEnumerable<Car> cars;
        private readonly Dictionary<Car, MessageQueue> queueMap;
+       private readonly int carsPerProcessor;
 
-        public QueueManager(IEnumerable<Car> cars)
+        public QueueManager(IEnumerable<Car> cars, int carsPerProcessor)
         {
             this.cars = cars;
+           this.carsPerProcessor = carsPerProcessor;
             Threads = new List<Thread>();
            Queues = new List<MessageQueue>();
+           Processors = new List<MessageProcessor>();
            queueMap = new Dictionary<Car, MessageQueue>();
         }
                 
         public List<Thread> Threads { get; set; }
         public List<MessageQueue> Queues { get; set; }
+        public List<MessageProcessor> Processors { get; set; } 
        public int MessageCount
        {
           get { return Queues.Sum(x => x.Count); }
@@ -33,9 +37,10 @@ namespace QueueSimulator
             IEnumerable<Car> set;
             while (true)
             {
-                set = allCars.Take(20).ToList();
+                set = allCars.Take(carsPerProcessor).ToList();
                var queue = new MessageQueue();
                var processor = new MessageProcessor(queue);
+               Processors.Add(processor);
                 foreach (Car car in set)
                 {
                     allCars.Remove(car);
@@ -45,11 +50,19 @@ namespace QueueSimulator
                var thread = new Thread(() => { processor.Start(); });
                 Threads.Add(thread);
                 Queues.Add(queue);
-                if (set.Count() < 20) break;
+                if (allCars.Count() < carsPerProcessor) break;
             }
 
             StartThreads();
         }
+
+       public void Stop()
+       {
+          foreach (var messageProcessor in Processors)
+          {
+             messageProcessor.Stop();
+          }
+       }
 
        public void Enqueue(Message message, Car car, Priority priority = Priority.Low)
        {
