@@ -51,7 +51,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="SlowAttribute.cs" />
-    <Compile Include="Integration\Class1.cs" />
+    <Compile Include="Integration\QueueManagerIntegrationTests.cs" />
     <Compile Include="MessageProcessorTests.cs" />
     <Compile Include="MessageQueueTests.cs" />
     <Compile Include="QueueManagerTests.cs" />

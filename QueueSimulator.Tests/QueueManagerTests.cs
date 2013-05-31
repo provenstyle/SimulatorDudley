@@ -46,19 +46,19 @@ namespace QueueSimulator.Tests
            Assert.IsTrue(target.Threads.Count == 1);
         }
 
-        [TestMethod]
-        public void Should_Start_Threads_On_Start()
-        {
-            // Arrange
-            
+       [TestMethod]
+       public void should_create_one_queue_per_thread()
+       {
+          // Arrange
 
-            // Act
-            target.Start();
 
-            // Assert
-            Assert.AreEqual(ThreadState.Running, target.Threads[0].ThreadState);
-        }
+          // Act
+          target.Start();
 
+          // Assert
+          Assert.AreEqual(target.Queues.Count, 1);
+
+       }
     }
 
 }
