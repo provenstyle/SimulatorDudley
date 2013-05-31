@@ -10,12 +10,18 @@ namespace QueueSimulator
    class Program
    {
       private static QueueManager queueManager;
-      private static List<Car> cars;
+      private static List<Car> cars = new List<Car>();
+      private static int carsInFleet = 10;
+      private static int carsPerProcessor = 10;
 
       static void Main(string[] args)
       {
-         cars = new List<Car> { new Car() };
-         queueManager = new QueueManager(cars, 20);
+         for (int i = 0; i < carsInFleet; i++)
+         {
+            cars.Add(new Car(){Address = i.ToString()});
+         }
+
+         queueManager = new QueueManager(cars, carsPerProcessor);
          queueManager.Start();
 
          StartProducers();
@@ -31,17 +37,22 @@ namespace QueueSimulator
       }
 
       private static void LongRunningLowPriorityMessages()
-       {
-          for (int i = 0; i < 100; i++)
-          {
-             var message = new Message(() =>
-                           {
-                              Thread.Sleep(100);
-                              Console.WriteLine("Thread: {0}, {1}", Thread.CurrentContext.ContextID,
-                                                "message processed");
-                           });
-             queueManager.Enqueue(message, cars[0]);
-          }
+      {
+         int messagesToAdd = 10;
+         foreach (var car in cars)
+         {
+            for (int i = 0; i < messagesToAdd; i++)
+            {
+               var message = new Message(() =>
+               {
+                  Thread.Sleep(100);
+                  Console.WriteLine("Thread: {0}, {1}",
+                                    car.Address,
+                                    "message processed");
+               });
+               queueManager.Enqueue(message, car);
+            }  
+         }
        }
 
       private static void HighPriorityMessages()
@@ -49,13 +60,16 @@ namespace QueueSimulator
          var timer = new System.Timers.Timer(1000);
          timer.Elapsed += (sender, args) =>
          {
-            var message = new Message(() =>
+            foreach (var car in cars)
             {
-               Console.WriteLine("Thread: {0}, {1}",
-                                 Thread.CurrentContext.ContextID,
-                                 "High priority message");
-            });
-            queueManager.Enqueue(message, cars[0], Priority.High);
+               var message = new Message(() =>
+               {
+                  Console.WriteLine("Thread: {0}, {1}",
+                                    car.Address,
+                                    "High priority message");
+               });
+               queueManager.Enqueue(message, cars[0], Priority.High);   
+            }
          };
          timer.Start();
       }

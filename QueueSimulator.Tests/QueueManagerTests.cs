@@ -15,10 +15,10 @@ namespace QueueSimulator.Tests
         public void Setup()
         {
             listOfCars = new List<Car>()
-                                         {
-                                           new Car(),
-                                           new Car()
-                                         };
+               {
+                  new Car(),
+                  new Car()
+               };
 
         }
         [TestMethod]

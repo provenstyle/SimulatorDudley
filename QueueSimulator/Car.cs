@@ -9,5 +9,6 @@ namespace QueueSimulator
 {
     public class Car
     {
+       public string Address { get; set; }
     }
 }

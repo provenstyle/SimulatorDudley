@@ -1,0 +1,6 @@
+﻿Messages should not be run if their time out has expired.
+QueueManager should track which cars are processed on a thread.
+MessageProcessor should recover from an unhandled exception.
+Message entered queue should be logged for procmon.
+Message processing complete should bbe logged for procmon. 
+MessageQueue depth should be logged for procmon.
