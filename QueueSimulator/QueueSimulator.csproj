@@ -43,9 +43,12 @@
   <ItemGroup>
     <Compile Include="Car.cs" />
     <Compile Include="IMessage.cs" />
+    <Compile Include="IMessageProcessor.cs" />
     <Compile Include="Logger.cs" />
+    <Compile Include="ManagedGroup.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MessageProcessor.cs" />
+    <Compile Include="MessageProcessorFactory.cs" />
     <Compile Include="MessageQueue.cs" />
     <Compile Include="Priority.cs" />
     <Compile Include="Program.cs" />

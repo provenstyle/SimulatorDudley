@@ -50,6 +50,8 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="ExceptionThrowingMessageProcessor.cs" />
+    <Compile Include="ExceptionThrowingMessageProcessorFactory.cs" />
     <Compile Include="SlowAttribute.cs" />
     <Compile Include="Integration\QueueManagerIntegrationTests.cs" />
     <Compile Include="MessageProcessorTests.cs" />

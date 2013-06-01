@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading;
 
@@ -21,8 +18,9 @@ namespace QueueSimulator.Tests.Integration
                   {
                      new Car()
                   };
-
-          queueManager = new QueueManager(cars, 20);
+          
+          queueManager = new QueueManager(new MessageProcessorFactory());
+          queueManager.Init(cars, 20);
           queueManager.Start();
        }
 
@@ -81,6 +79,32 @@ namespace QueueSimulator.Tests.Integration
           Assert.IsTrue(processed);
        }
 
+       [TestMethod] [Slow]
+       public void should_raise_event_on_unhandled_thread_exception()
+       {
+          // Arrange        
+          bool exceptionEventRaised = false;
+          int key = -1;
 
+          IMessageProcessorFactory exceptionThrowingMessageProcessorFactory
+             = new ExceptionThrowingMessageProcessorFactory();
+          queueManager = new QueueManager(exceptionThrowingMessageProcessorFactory);
+          queueManager.Init(cars, 1);
+
+          // Act
+          queueManager.UnhandledThreadException += x =>
+          {
+             exceptionEventRaised = true;
+             key = x;
+          };
+
+          queueManager.Start();
+
+          Thread.Sleep(100);
+
+          // Assert
+          Assert.IsTrue(exceptionEventRaised);
+          Assert.AreEqual(0, key);
+       }
     }
 }

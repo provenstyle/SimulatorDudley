@@ -1,28 +1,37 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
 namespace QueueSimulator
 {
-   public class QueueManager
-   {
-      private readonly IEnumerable<Car> _cars;
-      private readonly Dictionary<int, Group> _groups;
+   public class QueueManager : IDisposable
+   {      
+      private readonly Dictionary<int, ManagedGroup> _groups;
       private readonly Dictionary<Car, MessageQueue> _queueMap;
-      private readonly int _carsPerProcessor;
+      private readonly IMessageProcessorFactory _messageProcessorFactory;
 
-      public QueueManager(IEnumerable<Car> cars, int carsPerProcessor)
+      private IEnumerable<Car> _cars;
+      private int _carsPerProcessor;
+
+      public QueueManager(IMessageProcessorFactory messageProcessorFactory)
       {
-         _cars = cars;
-         _carsPerProcessor = carsPerProcessor;
+         _messageProcessorFactory = messageProcessorFactory;
          _queueMap = new Dictionary<Car, MessageQueue>();
-         _groups = new Dictionary<int, Group>();
+         _groups = new Dictionary<int, ManagedGroup>();
       }
 
+      public event Action<int> UnhandledThreadException;
       public int ThreadCount { get { return _groups.Count(); } }
       public int QueueCount { get { return _groups.Count; } }      
       public int ProcessorCount { get { return _groups.Count; } }
       public int MessageCount { get { return _groups.Sum(x => x.Value.MessageQueue.Count); } }
+
+      public void Init(IEnumerable<Car> cars, int carsPerProcessor)
+      {
+         _cars = cars;
+         _carsPerProcessor = carsPerProcessor;
+      }
 
       public void Start()
       {
@@ -60,7 +69,7 @@ namespace QueueSimulator
          CreateGroup(new List<Car> {car});
       }
 
-      public MessageProcessor GetProcessor(int key)
+      public IMessageProcessor GetProcessor(int key)
       {
          return _groups[key].MessageProcessor;
       }
@@ -85,14 +94,25 @@ namespace QueueSimulator
          }
       }
 
-      private Group CreateGroup(List<Car> cars)
+      private ManagedGroup CreateGroup(List<Car> cars)
       {
          var id = _groups.Count;
          var queue = new MessageQueue();
-         var processor = new MessageProcessor(queue);
-         var thread = new Thread(() => { processor.Start(); });
+         var processor = _messageProcessorFactory.Create(queue);         
+         var thread = new Thread(() =>
+            {
+               try
+               {
+                  processor.Start();
+               }
+               catch (Exception ex)
+               {
+                  Logger.Error(ex, "Unhandled exception in message processor.");
+                  UnhandledThreadException(id);
+               }
+            });
 
-         var group = new Group
+         var group = new ManagedGroup
          {
             Cars = cars,
             MessageProcessor = processor,
@@ -117,13 +137,14 @@ namespace QueueSimulator
             group.Value.Thread.Start();
          }
       }
-   }
 
-   public class Group
-   {
-      public Thread Thread { get; set; }
-      public MessageQueue MessageQueue { get; set; }
-      public MessageProcessor MessageProcessor { get; set; }
-      public List<Car> Cars { get; set; }
+      public void Dispose()
+      {
+         foreach (var group in _groups)
+         {
+            _messageProcessorFactory
+               .Release(group.Value.MessageProcessor);            
+         }
+      }
    }
 }

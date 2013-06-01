@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace QueueSimulator
 {
-   public class MessageProcessor
+   public class MessageProcessor : IMessageProcessor
    {
       private bool _stopSignal = false;
       private readonly MessageQueue _queue;

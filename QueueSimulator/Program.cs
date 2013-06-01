@@ -21,7 +21,9 @@ namespace QueueSimulator
             cars.Add(new Car(){Address = i.ToString()});
          }
 
-         queueManager = new QueueManager(cars, carsPerProcessor);
+         var messageProcessorFactory = new MessageProcessorFactory();
+         queueManager = new QueueManager(messageProcessorFactory);
+         queueManager.Init(cars, carsPerProcessor);
          queueManager.Start();
 
          StartProducers();
