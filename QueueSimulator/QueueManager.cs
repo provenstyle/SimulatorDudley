@@ -1,38 +1,28 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace QueueSimulator
 {
    public class QueueManager
    {
-      private readonly IEnumerable<Car> cars;
-      private readonly Dictionary<int, List<Car>> GroupedCars;
-
-      private readonly Dictionary<Car, MessageQueue> queueMap;
-      private readonly int carsPerProcessor;
+      private readonly IEnumerable<Car> _cars;
+      private readonly Dictionary<int, Group> _groups;
+      private readonly Dictionary<Car, MessageQueue> _queueMap;
+      private readonly int _carsPerProcessor;
 
       public QueueManager(IEnumerable<Car> cars, int carsPerProcessor)
       {
-         this.cars = cars;
-         this.carsPerProcessor = carsPerProcessor;
-         Threads = new List<Thread>();
-         Queues = new List<MessageQueue>();
-         Processors = new List<MessageProcessor>();
-         queueMap = new Dictionary<Car, MessageQueue>();
-         GroupedCars = new Dictionary<int, List<Car>>();
+         _cars = cars;
+         _carsPerProcessor = carsPerProcessor;
+         _queueMap = new Dictionary<Car, MessageQueue>();
+         _groups = new Dictionary<int, Group>();
       }
 
-      public List<Thread> Threads { get; set; }
-      public List<MessageQueue> Queues { get; set; }
-      public List<MessageProcessor> Processors { get; set; }
-      public int MessageCount
-      {
-         get { return Queues.Sum(x => x.Count); }
-      }
+      public int ThreadCount { get { return _groups.Count(); } }
+      public int QueueCount { get { return _groups.Count; } }      
+      public int ProcessorCount { get { return _groups.Count; } }
+      public int MessageCount { get { return _groups.Sum(x => x.Value.MessageQueue.Count); } }
 
       public void Start()
       {
@@ -42,16 +32,16 @@ namespace QueueSimulator
 
       public void Stop()
       {
-         foreach (var messageProcessor in Processors)
+         foreach (var group in _groups)
          {
-            messageProcessor.Stop();
+            group.Value.MessageProcessor.Stop();
          }
       }
 
       public void Enqueue(Message message, Car car, Priority priority = Priority.Low)
       {
          MessageQueue queue;
-         if (queueMap.TryGetValue(car, out queue))
+         if (_queueMap.TryGetValue(car, out queue))
          {
             queue.Add(message, priority);
          }
@@ -59,54 +49,72 @@ namespace QueueSimulator
 
       public void AddCar(Car car)
       {
-         foreach (var group in GroupedCars)
+         foreach (var group in _groups)
          {
-            if (group.Value.Count < carsPerProcessor)
-               group.Value.Add(car);
+            if (group.Value.Cars.Count() < _carsPerProcessor)
+            {
+               group.Value.Cars.Add(car);
+               return;
+            }
          }
+         CreateGroup(new List<Car> {car});
+      }
+
+      public MessageProcessor GetProcessor(int key)
+      {
+         return _groups[key].MessageProcessor;
+      }
+
+      public IEnumerable<Car> GetCarsOnThread(int key)
+      {
+         return _groups[key].Cars;
       }
 
       private void BalanceCars()
       {
-         var allCars = new List<Car>(cars);
-         IEnumerable<Car> set;
-         int idCounter = 0;
+         var allCars = new List<Car>(_cars);
+
          while (allCars.Any())
          {
-            set = allCars.Take(carsPerProcessor).ToList();
-            GroupedCars.Add(idCounter, set.ToList());
-            idCounter ++;
-
-            var queue = new MessageQueue();
-            Queues.Add(queue);
-            var processor = new MessageProcessor(queue);
-            Processors.Add(processor);
-            var thread = new Thread(() => { processor.Start(); });
-            Threads.Add(thread);
-
-            var group = new Group
-            {
-               Cars = set,
-               MessageProcessor = processor,
-               MessageQueue = queue,
-               Thread = thread
-            };
-
-            
+            var set = allCars.Take(_carsPerProcessor).ToList();
+            CreateGroup(set);
             foreach (Car car in set)
             {
                allCars.Remove(car);
-               queueMap.Add(car, queue);
-            }            
+            }
          }
       }
 
+      private Group CreateGroup(List<Car> cars)
+      {
+         var id = _groups.Count;
+         var queue = new MessageQueue();
+         var processor = new MessageProcessor(queue);
+         var thread = new Thread(() => { processor.Start(); });
+
+         var group = new Group
+         {
+            Cars = cars,
+            MessageProcessor = processor,
+            MessageQueue = queue,
+            Thread = thread
+         };
+
+         _groups.Add(id, group);
+
+         foreach (var car in cars)
+         {
+            _queueMap.Add(car, queue);
+         }
+
+         return group;
+      }
 
       private void StartThreads()
       {
-         foreach (var thread in Threads)
+         foreach (var group in _groups)
          {
-            thread.Start();
+            group.Value.Thread.Start();
          }
       }
    }
@@ -116,6 +124,6 @@ namespace QueueSimulator
       public Thread Thread { get; set; }
       public MessageQueue MessageQueue { get; set; }
       public MessageProcessor MessageProcessor { get; set; }
-      public IEnumerable<Car> Cars { get; set; }
+      public List<Car> Cars { get; set; }
    }
 }

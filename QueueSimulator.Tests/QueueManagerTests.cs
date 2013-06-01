@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Threading;
@@ -31,7 +32,7 @@ namespace QueueSimulator.Tests
             target.Start();
 
             // Assert
-            Assert.AreEqual(1, target.Threads.Count);
+            Assert.AreEqual(1, target.ThreadCount);
         }
 
         [TestMethod]
@@ -44,7 +45,7 @@ namespace QueueSimulator.Tests
            target.Start();
 
            // Assert
-           Assert.IsTrue(target.Threads.Count == 1);
+           Assert.IsTrue(target.ThreadCount == 1);
         }
 
        [TestMethod]
@@ -58,7 +59,7 @@ namespace QueueSimulator.Tests
           target.Start();
 
           // Assert
-          Assert.AreEqual(target.Queues.Count, 1);
+          Assert.AreEqual(target.QueueCount, 1);
 
        }
 
@@ -72,7 +73,7 @@ namespace QueueSimulator.Tests
           target.Start();
 
           // Assert
-          Assert.AreEqual(2, target.Processors.Count);
+          Assert.AreEqual(2, target.ProcessorCount);
        }
 
        [TestMethod]
@@ -86,7 +87,35 @@ namespace QueueSimulator.Tests
           target.AddCar(new Car());
 
           // Assert
-          Assert.AreEqual(3, target.Processors.Count);
+          Assert.AreEqual(3, target.ProcessorCount);
+       }
+
+       [TestMethod]
+       public void should_not_create_new_processor_if_there_is_room_on_existing()
+       {
+          // Arrange
+          target = new QueueManager(listOfCars, 5);
+
+          // Act
+          target.Start();
+          target.AddCar(new Car());
+
+          // Assert
+          Assert.AreEqual(1, target.ProcessorCount);
+       }
+
+       [TestMethod]
+       public void should_track_what_cars_are_on_a_thread()
+       {
+          // Arrange
+          target = new QueueManager(listOfCars, 1);
+
+          // Act
+          target.Start();
+          var trackedCars = target.GetCarsOnThread(1);
+
+          // Assert
+          Assert.AreEqual(listOfCars[1], trackedCars.ToList()[0]);          
        }
 
        

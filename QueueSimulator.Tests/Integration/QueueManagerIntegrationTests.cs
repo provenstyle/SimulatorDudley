@@ -54,10 +54,10 @@ namespace QueueSimulator.Tests.Integration
           //Act
           while (queueManager.MessageCount > 0) { Thread.Sleep(100); }
 
-          before = queueManager.Processors[0].Processing;
+          before = queueManager.GetProcessor(0).Processing;
           queueManager.Stop();
           Thread.Sleep(500);
-          after = queueManager.Processors[0].Processing;
+          after = queueManager.GetProcessor(0).Processing;
 
           //Assert
           Assert.IsTrue(before);
