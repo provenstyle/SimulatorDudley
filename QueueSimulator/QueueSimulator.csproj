@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="Car.cs" />
     <Compile Include="IMessage.cs" />
+    <Compile Include="Logger.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MessageProcessor.cs" />
     <Compile Include="MessageQueue.cs" />

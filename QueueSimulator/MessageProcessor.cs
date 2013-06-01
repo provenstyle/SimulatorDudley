@@ -26,8 +26,15 @@ namespace QueueSimulator
            {
               while (Queue.Count > 0 )
               {
-                 var msg = Queue.Dequeue();
-                 msg.Run();
+                 try
+                 {
+                    var msg = Queue.Dequeue();
+                    msg.Run();
+                 }
+                 catch (Exception ex)
+                 {                                        
+                     Logger.Error(ex,"Error processing message.");  
+                 }                 
               }  
               Thread.Sleep(250);
            } while (!stopSignal);

@@ -64,6 +64,23 @@ namespace QueueSimulator.Tests.Integration
           Assert.IsFalse(after);
        }
 
+       [TestMethod]
+       [Slow]
+       public void Can_Survive_Exceptions()
+       {
+          //Arrange
+          bool processed = false;
+          queueManager.Enqueue(new Message(() => { throw new Exception("Something went wrong"); }), cars[0], Priority.High);
+          queueManager.Enqueue(new Message(() => { processed = true; }), cars[0], Priority.High);
+
+          //Act
+          while (queueManager.MessageCount > 0) { Thread.Sleep(100); }
+          queueManager.Stop();
+
+          //Assert
+          Assert.IsTrue(processed);
+       }
+
 
     }
 }
