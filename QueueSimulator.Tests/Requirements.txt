@@ -2,8 +2,9 @@
 Y Can Add Cars to the QueueManager
 Y QueueManager should track which cars are processed on a thread.
 
-Can Remove Cars from the QueueManager
 MessageProcessor should recover from an unhandled exception.
+Can Remove Cars from the QueueManager
+
 Message entered queue should be logged for procmon.
 Message processing complete should bbe logged for procmon. 
 MessageQueue depth should be logged for procmon.
