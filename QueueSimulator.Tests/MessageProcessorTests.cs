@@ -31,5 +31,31 @@ namespace QueueSimulator.Tests
             Assert.IsTrue(runCalled);
 
         }
+
+       [TestMethod]
+       public void should_not_run_expired_messages()
+       {
+          // Arrange
+          bool runCalled = false;
+          int timeToLive = 100; 
+          var message = new Message(() => runCalled = true, timeToLive);
+          MessageQueue messageQueue = new MessageQueue();          
+          var processor = new MessageProcessor(messageQueue);
+
+          // Act
+          Task.Factory.StartNew(processor.Start);
+          Thread.Sleep(150);
+          messageQueue.Add(message);
+
+          while (processor.Queue.Count > 0) { Thread.Sleep(100); }
+
+          processor.Stop();
+
+          // Assert
+          Assert.IsFalse(runCalled);
+
+        
+
+       }
     }
 }
