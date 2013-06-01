@@ -74,6 +74,22 @@ namespace QueueSimulator.Tests
           // Assert
           Assert.AreEqual(2, target.Processors.Count);
        }
+
+       [TestMethod]
+       public void should_add_new_cars_to_the_manager_after_it_is_started()
+       {
+          // Arrange
+          target = new QueueManager(listOfCars, 1);
+
+          // Act
+          target.Start();
+          target.AddCar(new Car());
+
+          // Assert
+          Assert.AreEqual(3, target.Processors.Count);
+       }
+
+       
     }
 
 }
