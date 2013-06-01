@@ -1,49 +1,46 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace QueueSimulator
 {
-    public class MessageProcessor
-    {
-        private bool stopSignal = false;
+   public class MessageProcessor
+   {
+      private bool _stopSignal = false;
+      private readonly MessageQueue _queue;
 
-        public bool Processing { get; private set; }
-        public MessageProcessor(MessageQueue queue)
-        {
-            this.Queue = queue;
-        }
+      public bool Processing { get; private set; }
+      public int QueueCount { get { return _queue.Count; } }
 
-        public MessageQueue Queue { get; private set; }
+      public MessageProcessor(MessageQueue queue)
+      {
+         _queue = queue;
+      }
 
-        public void Start()
-        {
-           Processing = true;
-           do
-           {
-              while (Queue.Count > 0 )
-              {
-                 try
-                 {
-                    var msg = Queue.Dequeue();
-                    msg.Run();
-                 }
-                 catch (Exception ex)
-                 {                                        
-                     Logger.Error(ex,"Error processing message.");  
-                 }                 
-              }  
-              Thread.Sleep(250);
-           } while (!stopSignal);
-           Processing = false;
-        }
+      public void Start()
+      {
+         Processing = true;
+         do
+         {
+            while (_queue.Count > 0)
+            {
+               try
+               {
+                  var msg = _queue.Dequeue();
+                  msg.Run();
+               }
+               catch (Exception ex)
+               {
+                  Logger.Error(ex, "Error processing message.");
+               }
+            }
+            Thread.Sleep(250);
+         } while (!_stopSignal);
+         Processing = false;
+      }
 
-        public void Stop()
-        {
-            stopSignal = true;
-        }
-    }
+      public void Stop()
+      {
+         _stopSignal = true;
+      }
+   }
 }

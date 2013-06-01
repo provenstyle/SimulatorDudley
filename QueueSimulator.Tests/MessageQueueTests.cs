@@ -32,27 +32,25 @@ namespace QueueSimulator.Tests
         public void Should_Add_Item_To_Queue_With_Priority()
         {
             // Arrange
-            
 
             // Act
             messageQueue.Add(new Message(), Priority.High);
 
             // Assert
             Assert.AreEqual(messageQueue.Count, 1);
-            Assert.AreEqual(messageQueue.GetQueue(Priority.High).Count, 1);
+            Assert.AreEqual(messageQueue.PriorityCount(Priority.High), 1);
         }
 
         [TestMethod]
         public void GetQueue_Should_Return_ConcurrentQueue_For_Priority()
         {
             // Arrange
-            messageQueue.Add(new Message(), Priority.High);
 
             // Act
-            var highQueue = messageQueue.GetQueue(Priority.High);
+           messageQueue.Add(new Message(), Priority.High);
 
             // Assert
-            Assert.AreEqual(1, highQueue.Count);
+            Assert.AreEqual(1, messageQueue.PriorityCount(Priority.High));
         }
 
         [TestMethod]

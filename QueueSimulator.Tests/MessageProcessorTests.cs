@@ -23,7 +23,7 @@ namespace QueueSimulator.Tests
             // Act
            Task.Factory.StartNew(processor.Start);
 
-            while (processor.Queue.Count > 0) { Thread.Sleep(100); }
+            while (processor.QueueCount > 0) { Thread.Sleep(100); }
 
             processor.Stop();
 
@@ -47,15 +47,12 @@ namespace QueueSimulator.Tests
           Thread.Sleep(150);
           messageQueue.Add(message);
 
-          while (processor.Queue.Count > 0) { Thread.Sleep(100); }
+          while (processor.QueueCount > 0) { Thread.Sleep(100); }
 
           processor.Stop();
 
           // Assert
           Assert.IsFalse(runCalled);
-
-        
-
        }
     }
 }
