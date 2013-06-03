@@ -100,7 +100,7 @@ namespace QueueSimulator.Tests.Integration
 
           queueManager.Start();
 
-          Thread.Sleep(100);
+          Thread.Sleep(20);
 
           // Assert
           Assert.IsTrue(exceptionEventRaised);

@@ -7,7 +7,7 @@ namespace QueueSimulator.Tests
    {
       public IMessageProcessor Create(MessageQueue queue)
       {
-         Thread.Sleep(10);
+         
          return new TestExceptionThrowingMessageProcessor();
       }
 

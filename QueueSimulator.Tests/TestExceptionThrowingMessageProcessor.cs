@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace QueueSimulator.Tests
 {
@@ -8,6 +9,7 @@ namespace QueueSimulator.Tests
       public int QueueCount { get; private set; }
       public void Start()
       {
+         Thread.Sleep(10);
          throw new Exception("Unhandled thread exception.");
       }
 
