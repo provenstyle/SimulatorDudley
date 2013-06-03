@@ -118,6 +118,21 @@ namespace QueueSimulator.Tests
 
          // Assert
          Assert.AreEqual(listOfCars[1], trackedCars.ToList()[0]);
-      }      
+      }
+
+      [TestMethod]
+      public void should_remove_cars_from_the_manager_after_it_is_started()
+      {
+         // Arrange
+         target = new QueueManager(messageProcessorFactory);
+         target.Init(listOfCars, 1);
+         target.Start();         
+
+         // Act
+         target.RemoveCar(listOfCars[0]);
+
+         // Assert
+         Assert.AreEqual(1, target.ProcessorCount);
+      }
    }
 }

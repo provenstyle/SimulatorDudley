@@ -14,5 +14,10 @@ namespace QueueSimulator
             Console.WriteLine(message);
          Console.WriteLine(ex);
       }
+
+      public static void Debug(string message)
+      {
+         Console.WriteLine(message);
+      }
    }
 }

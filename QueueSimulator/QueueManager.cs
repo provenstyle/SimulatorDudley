@@ -77,6 +77,50 @@ namespace QueueSimulator
          CreateGroup(new List<Car> { car });
       }
 
+      public void RemoveCar(Car car)
+      {
+         _queueMap.Remove(car);
+         
+         
+         foreach (var group in _groups)
+         {
+            Car carToRemove = null;
+            foreach (var trackedCar in group.Value.Cars)
+            {
+               if (trackedCar == car)
+               {
+                  carToRemove = trackedCar;
+               }
+            }
+            if (carToRemove != null)
+            {
+               group.Value.Cars.Remove(carToRemove);
+            }
+         }
+
+         CleanupUnNeededGroups();
+      }
+
+      private void CleanupUnNeededGroups()
+      {
+         var managedGroupsToRemove = new List<int>();
+
+         foreach (var group in _groups)
+         {
+            if (group.Value.Cars.Count == 0)
+            {
+               group.Value.MessageProcessor.Stop();
+               group.Value.Thread.Abort();
+               managedGroupsToRemove.Add(group.Key);
+            }            
+         }
+
+         foreach (var key in managedGroupsToRemove)
+         {
+            _groups.Remove(key);
+         }
+      }
+
       public IMessageProcessor GetProcessor(int key)
       {
          return _groups[key].MessageProcessor;
@@ -135,6 +179,10 @@ namespace QueueSimulator
                try
                {
                   processor.Start();
+               }
+               catch (ThreadAbortException abortException)
+               {
+                  Logger.Debug("Thread was shutdown.");
                }
                catch (Exception ex)
                {

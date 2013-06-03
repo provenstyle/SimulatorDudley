@@ -1,10 +1,10 @@
 ﻿namespace QueueSimulator
 {
-   public class MessageProcessorFactory: IMessageProcessorFactory
+   public class MessageProcessorFactoryWithException: IMessageProcessorFactory
    {
       public IMessageProcessor Create(MessageQueue queue)
-      {         
-         return new MessageProcessor(queue);
+      {
+         return new MessageProcessorWithException(queue);         
       }
 
       public void Release(IMessageProcessor messageProcessor)
