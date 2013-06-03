@@ -4,7 +4,8 @@
    {
       public IMessageProcessor Create(MessageQueue queue)
       {
-         return new MessageProcessor(queue);
+         return new MessageProcessorWithException(queue);
+         //return new MessageProcessor(queue);
       }
 
       public void Release(IMessageProcessor messageProcessor)

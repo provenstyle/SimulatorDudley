@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace QueueSimulator.Tests
 {
@@ -6,7 +7,8 @@ namespace QueueSimulator.Tests
    {
       public IMessageProcessor Create(MessageQueue queue)
       {
-         return new ExceptionThrowingMessageProcessor();
+         Thread.Sleep(10);
+         return new TestExceptionThrowingMessageProcessor();
       }
 
       public void Release(IMessageProcessor messageProcessor)

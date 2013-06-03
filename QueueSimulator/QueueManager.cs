@@ -6,7 +6,7 @@ using System.Threading;
 namespace QueueSimulator
 {
    public class QueueManager : IDisposable
-   {      
+   {
       private readonly Dictionary<int, ManagedGroup> _groups;
       private readonly Dictionary<Car, MessageQueue> _queueMap;
       private readonly IMessageProcessorFactory _messageProcessorFactory;
@@ -19,11 +19,19 @@ namespace QueueSimulator
          _messageProcessorFactory = messageProcessorFactory;
          _queueMap = new Dictionary<Car, MessageQueue>();
          _groups = new Dictionary<int, ManagedGroup>();
+
+         UnhandledThreadException += i =>
+            {
+               var group = _groups[i];
+               group.ExceptionCount++;
+               RebuildManagedGroup(group);
+            };
       }
 
       public event Action<int> UnhandledThreadException;
+      public ManagedGroup GetManagedGroup(int key) { return _groups[key]; }
       public int ThreadCount { get { return _groups.Count(); } }
-      public int QueueCount { get { return _groups.Count; } }      
+      public int QueueCount { get { return _groups.Count; } }
       public int ProcessorCount { get { return _groups.Count; } }
       public int MessageCount { get { return _groups.Sum(x => x.Value.MessageQueue.Count); } }
 
@@ -66,7 +74,7 @@ namespace QueueSimulator
                return;
             }
          }
-         CreateGroup(new List<Car> {car});
+         CreateGroup(new List<Car> { car });
       }
 
       public IMessageProcessor GetProcessor(int key)
@@ -98,22 +106,12 @@ namespace QueueSimulator
       {
          var id = _groups.Count;
          var queue = new MessageQueue();
-         var processor = _messageProcessorFactory.Create(queue);         
-         var thread = new Thread(() =>
-            {
-               try
-               {
-                  processor.Start();
-               }
-               catch (Exception ex)
-               {
-                  Logger.Error(ex, "Unhandled exception in message processor.");
-                  UnhandledThreadException(id);
-               }
-            });
+         var processor = _messageProcessorFactory.Create(queue);
+         var thread = CreateThread(processor, id);
 
          var group = new ManagedGroup
          {
+            id = id,
             Cars = cars,
             MessageProcessor = processor,
             MessageQueue = queue,
@@ -130,6 +128,46 @@ namespace QueueSimulator
          return group;
       }
 
+      private Thread CreateThread(IMessageProcessor processor, int id)
+      {
+         return new Thread(() =>
+            {
+               try
+               {
+                  processor.Start();
+               }
+               catch (Exception ex)
+               {
+                  Logger.Error(ex, "Unhandled exception in message processor.");
+                  UnhandledThreadException(id);
+               }
+            });
+      }
+
+      private void RebuildManagedGroup(ManagedGroup group)
+      {
+         var queue = new MessageQueue();
+         var processor = _messageProcessorFactory.Create(queue);
+         var thread = CreateThread(processor, group.id);
+
+         group.MessageQueue = queue;
+         group.MessageProcessor = processor;
+         group.Thread = thread;
+
+         //remove old mapping
+         foreach (var car in group.Cars)
+         {
+            _queueMap.Remove(car);
+         }
+
+         //add new mapping
+         foreach (var car in group.Cars)
+         {
+            _queueMap.Add(car, queue);
+         }
+         thread.Start();
+      }
+
       private void StartThreads()
       {
          foreach (var group in _groups)
@@ -143,7 +181,7 @@ namespace QueueSimulator
          foreach (var group in _groups)
          {
             _messageProcessorFactory
-               .Release(group.Value.MessageProcessor);            
+               .Release(group.Value.MessageProcessor);
          }
       }
    }

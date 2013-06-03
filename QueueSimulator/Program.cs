@@ -48,7 +48,7 @@ namespace QueueSimulator
                var message = new Message(() =>
                {
                   Thread.Sleep(100);
-                  Console.WriteLine("Thread: {0}, {1}",
+                  Console.WriteLine("Car Address: {0}, {1}",
                                     car.Address,
                                     "message processed");
                });
@@ -66,7 +66,7 @@ namespace QueueSimulator
             {
                var message = new Message(() =>
                {
-                  Console.WriteLine("Thread: {0}, {1}",
+                  Console.WriteLine("Car Address: {0}, {1}",
                                     car.Address,
                                     "High priority message");
                });

@@ -106,5 +106,49 @@ namespace QueueSimulator.Tests.Integration
           Assert.IsTrue(exceptionEventRaised);
           Assert.AreEqual(0, key);
        }
+
+       [TestMethod]
+       [Slow]
+       public void should_keep_count_of_thread_exceptions()
+       {
+          // Arrange                          
+          var exceptionCount = 0;
+          IMessageProcessorFactory exceptionThrowingMessageProcessorFactory
+             = new ExceptionThrowingMessageProcessorFactory();
+          queueManager = new QueueManager(exceptionThrowingMessageProcessorFactory);
+          queueManager.Init(cars, 1);
+
+          // Act          
+          queueManager.Start();
+          Thread.Sleep(30);
+          exceptionCount = queueManager.GetManagedGroup(0).ExceptionCount;
+
+          // Assert       
+          Console.WriteLine("Exception count: {0}", exceptionCount);
+          Assert.IsTrue(exceptionCount > 1);
+       }
+
+       [TestMethod]
+       [Slow]
+       public void should_create_new_thread_queue_messageProcessor_on_unhandled_thread_exception()
+       {
+          // Arrange                          
+          var exceptionCount = 0;
+          IMessageProcessorFactory exceptionThrowingMessageProcessorFactory
+             = new ExceptionThrowingMessageProcessorFactory();
+          queueManager = new QueueManager(exceptionThrowingMessageProcessorFactory);
+          queueManager.Init(cars, 1);
+
+          // Act          
+          queueManager.Start();          
+          //Thread.Sleep(10);
+          var before = queueManager.GetManagedGroup(0).Thread.ManagedThreadId;
+          Thread.Sleep(50);
+          var after = queueManager.GetManagedGroup(0).Thread.ManagedThreadId;
+
+          // Assert                    
+          Console.WriteLine("Thread Ids before {0} and after {1}", before, after);
+          Assert.AreNotEqual(before, after);
+       }
     }
 }
