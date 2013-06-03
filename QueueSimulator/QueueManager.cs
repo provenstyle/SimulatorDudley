@@ -8,7 +8,7 @@ namespace QueueSimulator
    public class QueueManager : IDisposable
    {
       private readonly Dictionary<int, ManagedGroup> _groups;
-      private readonly Dictionary<Car, MessageQueue> _queueMap;
+      private readonly Dictionary<Car, MessageQueue> _queueLookup;
       private readonly IMessageProcessorFactory _messageProcessorFactory;
 
       private IEnumerable<Car> _cars;
@@ -17,7 +17,7 @@ namespace QueueSimulator
       public QueueManager(IMessageProcessorFactory messageProcessorFactory)
       {
          _messageProcessorFactory = messageProcessorFactory;
-         _queueMap = new Dictionary<Car, MessageQueue>();
+         _queueLookup = new Dictionary<Car, MessageQueue>();
          _groups = new Dictionary<int, ManagedGroup>();
 
          UnhandledThreadException += i =>
@@ -58,7 +58,7 @@ namespace QueueSimulator
       public void Enqueue(Message message, Car car, Priority priority = Priority.Low)
       {
          MessageQueue queue;
-         if (_queueMap.TryGetValue(car, out queue))
+         if (_queueLookup.TryGetValue(car, out queue))
          {
             queue.Add(message, priority);
          }
@@ -79,13 +79,17 @@ namespace QueueSimulator
 
       public void RemoveCar(Car car)
       {
-         _queueMap.Remove(car);
-         
-         
+         _queueLookup.Remove(car);
+         RemoveCarFromGroup(car);
+         RemoveUnNeededGroups();
+      }
+
+      private void RemoveCarFromGroup(Car car)
+      {
          foreach (var group in _groups)
          {
             Car carToRemove = null;
-            foreach (var trackedCar in group.Value.Cars)
+            foreach (var trackedCar in @group.Value.Cars)
             {
                if (trackedCar == car)
                {
@@ -97,11 +101,9 @@ namespace QueueSimulator
                group.Value.Cars.Remove(carToRemove);
             }
          }
-
-         CleanupUnNeededGroups();
       }
 
-      private void CleanupUnNeededGroups()
+      private void RemoveUnNeededGroups()
       {
          var managedGroupsToRemove = new List<int>();
 
@@ -166,7 +168,7 @@ namespace QueueSimulator
 
          foreach (var car in cars)
          {
-            _queueMap.Add(car, queue);
+            _queueLookup.Add(car, queue);
          }
 
          return group;
@@ -205,13 +207,13 @@ namespace QueueSimulator
          //remove old mapping
          foreach (var car in group.Cars)
          {
-            _queueMap.Remove(car);
+            _queueLookup.Remove(car);
          }
 
          //add new mapping
          foreach (var car in group.Cars)
          {
-            _queueMap.Add(car, queue);
+            _queueLookup.Add(car, queue);
          }
          thread.Start();
       }
